@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRATEGIC CO-INVESTMENT TRACKER · v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f; --bg-2: #161616; --bg-3: #1c1c1c;
+    --line: #2a2a2a; --line-soft: #1f1f1f;
+    --gold: #c9a84c; --gold-dim: #8a7434; --gold-bright: #e0c269;
+    --text: #e8e4d8; --text-dim: #8a8578; --text-faint: #5a564c;
+    --green: #6ba368; --red: #c75a5a; --amber: #d4954f; --blue: #6a8fb8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  body { background-image: radial-gradient(ellipse at top left, rgba(201, 168, 76, 0.04) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(201, 168, 76, 0.02) 0%, transparent 50%); background-attachment: fixed; }
+  .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px); background-size: 80px 80px; opacity: 0.4; pointer-events: none; z-index: 0; }
+  .container { position: relative; z-index: 1; max-width: 1480px; margin: 0 auto; padding: 32px 40px 80px; }
+  .masthead { border-top: 2px solid var(--gold); border-bottom: 1px solid var(--line); padding: 28px 0 24px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 40px; }
+  .brand-meta { font-size: 10px; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; display: flex; gap: 24px; align-items: center; margin-bottom: 8px; }
+  .brand-meta::before { content: '◆'; color: var(--gold); }
+  h1.title { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 44px; letter-spacing: -0.02em; line-height: 1; color: var(--text); }
+  h1.title em { font-style: italic; color: var(--gold); font-weight: 400; }
+  .subtitle { font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 14px; color: var(--text-dim); margin-top: 8px; max-width: 680px; }
+  .header-stats { display: grid; grid-template-columns: repeat(3, auto); gap: 32px; text-align: right; }
+  .header-stat-label { font-size: 9px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .header-stat-val { font-family: 'Libre Baskerville', serif; font-size: 22px; color: var(--gold); }
+  .statusbar { border-bottom: 1px solid var(--line); padding: 10px 0; display: flex; gap: 32px; align-items: center; font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; flex-wrap: wrap; }
+  .status-item { display: flex; gap: 8px; align-items: center; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .tab-strip { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin: 28px 0 0; }
+  .tab-btn { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-dim); padding: 14px 28px; font-family: 'Libre Baskerville', serif; font-size: 14px; font-style: italic; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; margin-bottom: -1px; display: flex; align-items: center; gap: 10px; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-btn .tab-marker { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; font-style: normal; }
+  .tab-btn.active .tab-marker { color: var(--gold-dim); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .section-header { margin: 56px 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 20px; }
+  .section-marker { font-family: 'Libre Baskerville', serif; font-size: 11px; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; }
+  .section-title { font-family: 'Libre Baskerville', serif; font-size: 24px; font-weight: 400; color: var(--text); letter-spacing: -0.01em; }
+  .section-title em { color: var(--gold); font-style: italic; }
+  .section-meta { font-size: 10px; letter-spacing: 0.15em; color: var(--text-faint); text-transform: uppercase; }
+  .parents-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .parent-cell { background: var(--bg-2); padding: 16px 14px; transition: background 0.2s; }
+  .parent-cell:hover { background: var(--bg-3); }
+  .parent-ticker { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 16px; color: var(--gold); letter-spacing: 0.05em; }
+  .parent-name { font-size: 9px; letter-spacing: 0.1em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 12px; }
+  .parent-price { font-size: 18px; color: var(--text); font-weight: 500; margin-top: 8px; }
+  .parent-change { font-size: 11px; margin-top: 2px; }
+  .pos { color: var(--green); } .neg { color: var(--red); } .neu { color: var(--text-dim); }
+  .investment-card { background: var(--bg-2); border: 1px solid var(--line); border-left: 2px solid var(--gold); margin-bottom: 24px; display: grid; grid-template-columns: 280px 1fr; overflow: hidden; transition: border-left-color 0.3s; }
+  .investment-card:hover { border-left-color: var(--gold-bright); }
+  .card-left { background: var(--bg-3); padding: 24px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+  .ticker-block { display: flex; flex-direction: column; gap: 2px; }
+  .ticker-symbol { font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 36px; color: var(--gold); letter-spacing: 0.02em; line-height: 1; }
+  .ticker-name { font-size: 11px; letter-spacing: 0.1em; color: var(--text-dim); text-transform: uppercase; margin-top: 6px; }
+  .price-block { margin-top: 8px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .price-current { font-family: 'Libre Baskerville', serif; font-size: 28px; color: var(--text); line-height: 1; }
+  .price-change-row { display: flex; gap: 12px; font-size: 12px; margin-top: 6px; }
+  .price-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 14px; font-size: 10px; }
+  .price-meta-label { color: var(--text-faint); letter-spacing: 0.05em; text-transform: uppercase; }
+  .price-meta-val { color: var(--text); text-align: right; }
+  .conviction-tag { margin-top: auto; padding-top: 14px; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); border-top: 1px solid var(--line); }
+  .card-right { padding: 24px 28px; }
+  .investor-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .investor-label { font-size: 9px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; }
+  .investor-badge { background: rgba(201, 168, 76, 0.08); border: 1px solid var(--gold-dim); color: var(--gold); padding: 3px 10px; font-size: 11px; letter-spacing: 0.1em; font-weight: 500; }
+  .deal-headline { font-family: 'Libre Baskerville', serif; font-size: 18px; line-height: 1.35; color: var(--text); margin-bottom: 16px; font-style: italic; }
+  .deal-headline strong { color: var(--gold); font-style: normal; }
+  .deal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; padding: 14px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+  .deal-stat-label { font-size: 9px; letter-spacing: 0.15em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .deal-stat-val { font-family: 'Libre Baskerville', serif; font-size: 15px; color: var(--gold); }
+  .deal-stat-val small { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); display: block; margin-top: 2px; font-style: normal; }
+  .thesis { font-size: 12px; line-height: 1.65; color: var(--text); margin-bottom: 14px; }
+  .thesis-label { font-size: 9px; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .risk-row { display: flex; gap: 24px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 11px; }
+  .risk-block { flex: 1; }
+  .risk-label { font-size: 9px; letter-spacing: 0.15em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .risk-text { color: var(--text-dim); line-height: 1.5; }
+  .risk-text.bull { color: var(--green); }
+  .risk-text.bear { color: var(--amber); }
+  .conviction-stars { display: inline-flex; gap: 2px; margin-left: auto; }
+  .star-filled { color: var(--gold); } .star-empty { color: var(--line); }
+  .loading { background: linear-gradient(90deg, var(--bg-3) 0%, var(--line) 50%, var(--bg-3) 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite; color: transparent; border-radius: 1px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .ornament { text-align: center; color: var(--gold-dim); margin: 24px 0 16px; letter-spacing: 1em; font-size: 10px; }
+  .news-controls { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .news-filter-label { font-size: 10px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; }
+  .filter-chip { background: transparent; border: 1px solid var(--line); color: var(--text-dim); padding: 6px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .filter-chip:hover { border-color: var(--gold-dim); color: var(--text); }
+  .filter-chip.active { border-color: var(--gold); color: var(--gold); background: rgba(201, 168, 76, 0.06); }
+  .news-meta { margin-left: auto; font-size: 10px; letter-spacing: 0.1em; color: var(--text-faint); text-transform: uppercase; }
+  .news-feed { margin-top: 0; }
+  .news-item { border-bottom: 1px solid var(--line-soft); padding: 18px 0; display: grid; grid-template-columns: 80px 1fr; gap: 24px; transition: background 0.15s; }
+  .news-item:hover { background: rgba(201, 168, 76, 0.02); }
+  .news-item.high-signal { border-left: 2px solid var(--gold); padding-left: 18px; margin-left: -20px; }
+  .news-date { font-size: 11px; color: var(--gold); font-family: 'Libre Baskerville', serif; font-style: italic; line-height: 1.3; }
+  .news-time-ago { font-size: 9px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-top: 3px; font-family: 'JetBrains Mono', monospace; font-style: normal; }
+  .news-body { min-width: 0; }
+  .news-headline { font-family: 'Libre Baskerville', serif; font-size: 16px; line-height: 1.4; color: var(--text); text-decoration: none; display: block; margin-bottom: 8px; transition: color 0.15s; }
+  .news-headline:hover { color: var(--gold-bright); }
+  .news-headline:visited { color: var(--text-dim); }
+  .news-summary { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 10px; }
+  .news-meta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 10px; }
+  .news-source { color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase; }
+  .news-tickers { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ticker-chip { background: rgba(201, 168, 76, 0.06); border: 1px solid var(--gold-dim); color: var(--gold); padding: 2px 8px; font-size: 9px; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace; }
+  .ticker-chip.parent { background: rgba(106, 143, 184, 0.06); border-color: var(--blue); color: var(--blue); }
+  .news-empty { padding: 60px 0; text-align: center; color: var(--text-dim); font-family: 'Libre Baskerville', serif; font-style: italic; }
+  .news-loading { padding: 40px 0; text-align: center; color: var(--gold); font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 14px; }
+  .footer { margin-top: 80px; padding: 24px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 20px; font-size: 10px; letter-spacing: 0.1em; color: var(--text-faint); text-transform: uppercase; }
+  .footer em { font-family: 'Libre Baskerville', serif; font-style: italic; text-transform: none; letter-spacing: normal; color: var(--text-dim); font-size: 11px; line-height: 1.6; }
+  @media (max-width: 1100px) { .parents-grid { grid-template-columns: repeat(4, 1fr); } .investment-card { grid-template-columns: 1fr; } .card-left { border-right: none; border-bottom: 1px solid var(--line); } .deal-grid { grid-template-columns: repeat(2, 1fr); } .news-item { grid-template-columns: 70px 1fr; gap: 16px; } }
+  @media (max-width: 720px) { .container { padding: 20px; } .masthead { grid-template-columns: 1fr; } .header-stats { text-align: left; grid-template-columns: repeat(3, 1fr); } h1.title { font-size: 28px; } .parents-grid { grid-template-columns: repeat(2, 1fr); } .deal-grid { grid-template-columns: 1fr 1fr; } .ticker-symbol { font-size: 28px; } .tab-btn { padding: 12px 16px; font-size: 12px; } .news-item { grid-template-columns: 60px 1fr; gap: 12px; } .news-headline { font-size: 14px; } }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="container">
+  <header class="masthead">
+    <div>
+      <div class="brand-meta"><span>VOL. I · ISSUE 02</span><span>EQUITY RESEARCH</span><span>RESTRICTED CIRCULATION</span></div>
+      <h1 class="title">Strategic Co-Investment <em>Tracker</em></h1>
+      <p class="subtitle">Public equity stakes &amp; material partnerships disclosed by NVIDIA, AMD, Broadcom, Alphabet, Amazon, Meta and Apple — ranked for follow-on accumulation, with a live deal-news feed across all 20 tickers in scope.</p>
+    </div>
+    <div class="header-stats">
+      <div><div class="header-stat-label">Positions</div><div class="header-stat-val">13</div></div>
+      <div><div class="header-stat-label">As Of</div><div class="header-stat-val" id="asof-date">—</div></div>
+      <div><div class="header-stat-label">Data Feed</div><div class="header-stat-val">FNHB</div></div>
+    </div>
+  </header>
+  <div class="statusbar">
+    <div class="status-item"><span class="status-dot"></span><span>LIVE FEED · NYSE/NASDAQ</span></div>
+    <div class="status-item"><span>SCOPE: 7 PARENTS · 13 POSITIONS</span></div>
+    <div class="status-item"><span>13F · 8-K · PRESS RELEASE · COMPANY-NEWS</span></div>
+    <div class="status-item" style="margin-left: auto;"><span id="refresh-clock">—</span></div>
+  </div>
+  <div class="tab-strip">
+    <button class="tab-btn active" data-tab="positions"><span class="tab-marker">§ I</span>Positions</button>
+    <button class="tab-btn" data-tab="news"><span class="tab-marker">§ II</span>Live Deal News</button>
+  </div>
+
+  <div class="tab-panel active" id="panel-positions">
+    <div class="section-header">
+      <span class="section-marker">i.</span>
+      <h2 class="section-title">The <em>Investors</em> — parent companies deploying strategic capital</h2>
+      <span class="section-meta">7 ENTITIES</span>
+    </div>
+    <div class="parents-grid" id="parents-grid"></div>
+
+    <div class="section-header">
+      <span class="section-marker">ii.</span>
+      <h2 class="section-title">Tier I — <em>Highest Conviction</em> follow-on positions</h2>
+      <span class="section-meta">FRESH STAKES · ASYMMETRIC</span>
+    </div>
+
+    <article class="investment-card" data-ticker="COHR">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">COHR</div><div class="ticker-name">Coherent Corp.</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">NVDA</span>
+          <span class="investor-label" style="margin-left: 16px;">Disclosed</span>
+          <span style="font-size: 11px; color: var(--text-dim);">MAR 2, 2026</span>
+        </div>
+        <p class="deal-headline">NVIDIA buys <strong>$2B in Coherent at $256.80</strong> — 7.79M shares — plus multi-billion supply commitment through end of decade.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Equity Stake</div><div class="deal-stat-val">$2.0B <small>private placement</small></div></div>
+          <div><div class="deal-stat-label">Strike Price</div><div class="deal-stat-val">$256.80 <small>NVDA cost basis</small></div></div>
+          <div><div class="deal-stat-label">Supply Commit</div><div class="deal-stat-val">Multi-Yr <small>thru end of decade</small></div></div>
+          <div><div class="deal-stat-label">Q3 Revenue</div><div class="deal-stat-val">$1.81B <small>+20% YoY</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">The cleanest single-event re-rating on the list. NVDA bought 7,788,161 shares at $256.80 and signed a multi-billion-dollar purchase commitment running through end-of-decade — converting a 20-year customer relationship into a strategic stakeholder. Co-engineered silicon photonics, indium phosphide capacity doubling, 1.6T VCSEL transceivers shipping later this year. Datacenter book-to-bill above 4x in Q2; Q3 revenue $1.81B with FY26 guidance midpoint $1.98B. CPO is a $15B incremental TAM Coherent claims direct exposure to. Margin trajectory and execution are the only questions left.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">CPO ramps as NVDA Rubin/Vera launches; 1.6T VCSEL gains share; margins hit 42%+ guide; capacity expansion fully absorbed.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Premium multiple (P/B 7.68); customer concentration via NVDA; FCF lags reported earnings; macro/cyclical pause in capex.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="NTNX">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">NTNX</div><div class="ticker-name">Nutanix, Inc.</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">AMD</span>
+          <span class="investor-label" style="margin-left: 16px;">Disclosed</span>
+          <span style="font-size: 11px; color: var(--text-dim);">FEB 25, 2026</span>
+        </div>
+        <p class="deal-headline">AMD takes a <strong>$150M direct equity position</strong> at $36.26/share — plus up to $100M for joint engineering on agentic AI.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Equity Stake</div><div class="deal-stat-val">$150M <small>cash purchase</small></div></div>
+          <div><div class="deal-stat-label">Strike Price</div><div class="deal-stat-val">$36.26 <small>AMD cost basis</small></div></div>
+          <div><div class="deal-stat-label">R&amp;D Funding</div><div class="deal-stat-val">$100M <small>multi-year</small></div></div>
+          <div><div class="deal-stat-label">Deal Type</div><div class="deal-stat-val">Multi-Year <small>strategic JV</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Joint roadmap integrates AMD ROCm and Enterprise AI software into Nutanix Cloud Platform and Kubernetes Platform on EPYC + Instinct. First co-engineered platform ships late 2026. NTNX becomes AMD's primary on-prem enterprise AI delivery vehicle — the inference layer most enterprises will run, and the cleanest "buy what AMD just bought" trade on this list. Mid-cap leaves meaningful room to compound.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">Agentic AI accelerates enterprise hybrid-cloud migration; NTNX becomes AMD's default ROCm distribution channel.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Subscription growth deceleration; competitive pressure from VMware/Red Hat; regulatory close timing.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="TLN">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">TLN</div><div class="ticker-name">Talen Energy</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Anchor Customer</span><span class="investor-badge">AMZN</span>
+          <span class="investor-label" style="margin-left: 16px;">Restructured PPA</span>
+          <span style="font-size: 11px; color: var(--text-dim);">JUN 11, 2025 · GRID GO-LIVE SPR 2026</span>
+        </div>
+        <p class="deal-headline">AWS signs a <strong>17-year, $18B PPA</strong> for up to 1,920 MW from Talen's Susquehanna nuclear plant — $1.4B annual revenue at full ramp.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Contract Value</div><div class="deal-stat-val">$18B <small>17-year PPA</small></div></div>
+          <div><div class="deal-stat-label">Capacity</div><div class="deal-stat-val">1,920 MW <small>front-of-meter</small></div></div>
+          <div><div class="deal-stat-label">Annual Rev</div><div class="deal-stat-val">$1.4B <small>at full ramp</small></div></div>
+          <div><div class="deal-stat-label">Term</div><div class="deal-stat-val">Through 2042 <small>+ extension opt.</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">A merchant power producer that has effectively become a regulated utility with single-customer hyperscaler economics. Susquehanna delivers 24/7 carbon-free baseload — exactly the profile AI factories require, exactly the supply that cannot be built fast. AMZN forwent the option to limit campus to 480 MW (commitment signal). Grid reconfiguration completes spring 2026; volume ramps to 840–1,200 MW by 2029, full 1,920 MW no later than 2032. Plus exploring SMRs and uprates with AMZN. The cleanest contracted-revenue visibility in IPP land — and the AI power thesis is the single largest known unknown of the next 24 months.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">SMR pilot commercializes; uprate adds capacity; second hyperscaler contract follows; PJM capacity prices remain elevated.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">FERC re-litigates BTM/FTM precedent; AWS demand pacing slips; nuclear regulatory delays on uprates/SMRs.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="INTC">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">INTC</div><div class="ticker-name">Intel Corporation</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">NVDA</span>
+          <span class="investor-label" style="margin-left: 16px;">Disclosed</span>
+          <span style="font-size: 11px; color: var(--text-dim);">SEP 2025 · 13F Q4</span>
+        </div>
+        <p class="deal-headline">NVIDIA pours <strong>$5B into Intel</strong> — taking ~4% ownership, marked $7.9B at year-end.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Equity Stake</div><div class="deal-stat-val">$5.0B <small>~4% ownership</small></div></div>
+          <div><div class="deal-stat-label">Year-End Value</div><div class="deal-stat-val">$7.9B <small>per 13F</small></div></div>
+          <div><div class="deal-stat-label">Partnership</div><div class="deal-stat-val">AI Products <small>co-development</small></div></div>
+          <div><div class="deal-stat-label">Foundry Tie</div><div class="deal-stat-val">18A Node <small>future ramp</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Most asymmetric semi name with an actual catalyst. NVDA's $5B endorsement reduces tail risk on Intel's foundry turnaround and signals integration into the AI roadmap. Trades at a fraction of TSM/AMD multiples. INTC bottomed in 2024; NVDA's stake creates a credibility floor while 18A node yields and foundry customer wins remain the upside drivers. Largest wildcard on the list — and the cheapest entry on a forward earnings basis.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">18A yields stabilize; major foundry customer signs; NVDA co-developed AI products generate measurable revenue by 2027.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Foundry execution misses (third year running); CHIPS Act ties limit flexibility; gross margin recovery delayed.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="NOK">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">NOK</div><div class="ticker-name">Nokia Oyj</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">NVDA</span>
+          <span class="investor-label" style="margin-left: 16px;">Disclosed</span>
+          <span style="font-size: 11px; color: var(--text-dim);">OCT 2025 · 8% NVDA PORTFOLIO</span>
+        </div>
+        <p class="deal-headline">NVIDIA buys <strong>$1B in Nokia stock</strong> at $6.01 — anchoring an AI-RAN partnership for a $200B 6G market.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Equity Stake</div><div class="deal-stat-val">$1.0B <small>at $6.01/share</small></div></div>
+          <div><div class="deal-stat-label">% of NVDA Port.</div><div class="deal-stat-val">~8% <small>top 4 position</small></div></div>
+          <div><div class="deal-stat-label">JV Market</div><div class="deal-stat-val">$200B <small>AI-RAN / 6G TAM</small></div></div>
+          <div><div class="deal-stat-label">Tech Stack</div><div class="deal-stat-val">CUDA + ARC <small>aerial RAN</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">The most under-the-radar name on this list. NVDA's $1B at $6.01 is a public, disclosed cost basis. NVIDIA contributes CUDA-accelerated computing, the Arc Aerial RAN Computer, and connectivity reference designs to Nokia's AirScale baseband. Pays a dividend, trades cheap on every conventional metric. AI-RAN has accelerating commercial momentum. Boring telecom equipment exposure with an NVDA-backed catalyst — exactly the trade shape that re-rates slowly then suddenly.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">AI-RAN deployments accelerate in 2027; sovereign 5G/6G mandates favor non-Chinese vendors; NVDA tie unlocks tier-1 wins.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Carrier capex remains weak; Ericsson/Samsung capture more 6G share; FX exposure to weak euro.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <div class="ornament">◆ ◆ ◆ ◆ ◆</div>
+
+    <div class="section-header">
+      <span class="section-marker">iii.</span>
+      <h2 class="section-title">Tier II — <em>High Conviction</em>, with execution dependencies</h2>
+      <span class="section-meta">CONSENSUS LONGS · DEAL-DRIVEN</span>
+    </div>
+
+    <article class="investment-card" data-ticker="BE">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">BE</div><div class="ticker-name">Bloom Energy</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Anchor Customers</span><span class="investor-badge">ORCL</span><span class="investor-badge">BAM</span>
+          <span class="investor-label" style="margin-left: 16px;">ORCL Warrant</span>
+          <span style="font-size: 11px; color: var(--gold);">$400M</span>
+        </div>
+        <p class="deal-headline">Oracle commits <strong>2.8 GW master fuel-cell agreement</strong> — 1.2 GW already contracted, deploying through 2027.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">ORCL Master</div><div class="deal-stat-val">2.8 GW <small>fuel-cell capacity</small></div></div>
+          <div><div class="deal-stat-label">Already Booked</div><div class="deal-stat-val">1.2 GW <small>deploying 2026-27</small></div></div>
+          <div><div class="deal-stat-label">BAM Partnership</div><div class="deal-stat-val">$5.0B <small>AI infra deals</small></div></div>
+          <div><div class="deal-stat-label">2026 Rev Guide</div><div class="deal-stat-val">$3.4–3.8B <small>raised</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Solid oxide fuel cells solve the time-to-power problem hyperscalers cannot solve through grid interconnect queues. Every Bloom server now ships 800V DC native — required by next-gen AI racks. Bloom delivered Oracle's first system in 55 days against a 90-day commitment. Project Jupiter (Doña Ana, NM) goes 100% Bloom — replacing previously planned gas turbines and diesels. Q4 25 rev $777M (+36% YoY); Q1 26 $751M; FY26 guide $3.4–3.8B. Pricing in execution, not discovery — but the TAM is real and BAM's $5B commits a financing partner.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">2.8 GW Oracle agreement fully drawn; Brookfield deals close on schedule; gross margin holds at 30%+; new hyperscaler signs.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Manufacturing scaling strains margins; natural-gas dependency / regulatory risk; competitor entry (Plug Power, others).</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="CRDO">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">CRDO</div><div class="ticker-name">Credo Technology</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Customer Concentration</span>
+          <span class="investor-badge">AMZN</span><span class="investor-badge">MSFT</span><span class="investor-badge">META</span><span class="investor-badge">GOOGL</span>
+          <span class="investor-label" style="margin-left: 12px;">Top 3</span>
+          <span style="font-size: 11px; color: var(--gold);">88%</span>
+        </div>
+        <p class="deal-headline">Five hyperscaler customers — <strong>AECs displacing optics</strong> on the scale-up network — Q3 FY26 revenue $407M, +201.5% YoY.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Lead Customer</div><div class="deal-stat-val">AMZN <small>~64% of revenue</small></div></div>
+          <div><div class="deal-stat-label">Q3 FY26 Rev</div><div class="deal-stat-val">$407M <small>+201.5% YoY</small></div></div>
+          <div><div class="deal-stat-label">QoQ Growth</div><div class="deal-stat-val">+51.9% <small>sequential</small></div></div>
+          <div><div class="deal-stat-label">Hyperscaler Mix</div><div class="deal-stat-val">5 Customers <small>3 over 10%</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Active Electrical Cables (AECs) deliver up to 1,000x better reliability than laser-based optical modules at roughly half the power — at 100Gbps lane speeds today, 200Gbps tomorrow. Critical for GPU scale-up topology. Dual model — IP licensing into hyperscaler custom chips creates downstream pull-through for AEC hardware. The bull case is the AI scale-up network is real and Credo owns the AEC category. The bear case is dependence on a handful of customers means a single design loss is catastrophic. Top 3 = 88% of revenue is the line that sizes the position for you.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">Two new hyperscaler ramps in 2H FY26; 1.6T transition extends AEC lead; IP licensing scales with custom-chip TAM.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">AMZN internalizes AEC IP; CPO displaces electrical interconnect faster than expected; quarterly volatility from program timing.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="TSM">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">TSM</div><div class="ticker-name">Taiwan Semi.</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Customer Mix</span>
+          <span class="investor-badge">NVDA</span><span class="investor-badge">AMD</span><span class="investor-badge">AVGO</span><span class="investor-badge">AAPL</span>
+          <span class="investor-label" style="margin-left: 12px;">Profile</span>
+          <span style="font-size: 11px; color: var(--gold);">SOLE WAFER VENDOR</span>
+        </div>
+        <p class="deal-headline">The <strong>chokepoint</strong> — every leading-edge AI chip on the list is fabricated here. ~24x fwd P/E vs NVDA 32x, AVGO 41x.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Fwd P/E</div><div class="deal-stat-val">~24x <small>vs NVDA 32x</small></div></div>
+          <div><div class="deal-stat-label">Rev Growth</div><div class="deal-stat-val">+30% <small>FY26 est.</small></div></div>
+          <div><div class="deal-stat-label">Leading Edge</div><div class="deal-stat-val">74% <small>3/5/7nm rev</small></div></div>
+          <div><div class="deal-stat-label">Position</div><div class="deal-stat-val">Sole Source <small>NVDA + AMD + AAPL</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Not technically a "co-investment" — TSMC is the supplier sitting underneath every name on the list. NVDA, AMD, AVGO, AAPL all depend on TSMC's leading-edge nodes. A pure derivative of every hyperscaler capex dollar, taxed at the lowest multiple in the supply chain. The valuation gap to its primary customers is the key reason it's here. Geopolitical risk is the only reason it isn't already at parity with AVGO. Position sizing should reflect that asymmetry — a tail-risk-adjusted valuation gap is still a valuation gap.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">2nm yield ramp on schedule; Arizona fab brings down geopolitical discount; advanced packaging capacity sold out through 2027.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Cross-strait tensions escalate; Intel Foundry meaningful share gain; hyperscaler in-sourcing on packaging.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="MU">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">MU</div><div class="ticker-name">Micron Technology</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Customer Mix</span><span class="investor-badge">NVDA</span>
+          <span class="investor-label" style="margin-left: 16px;">Position Status</span>
+          <span style="font-size: 11px; color: var(--text-dim);">EXISTING HOLDING · YOUR PORTFOLIO</span>
+        </div>
+        <p class="deal-headline">HBM <strong>sold out for 2026</strong> — Micron is the third leg of the HBM oligopoly with Samsung and SK Hynix.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">Fwd P/E</div><div class="deal-stat-val">~9x <small>cycle low</small></div></div>
+          <div><div class="deal-stat-label">2025 Return</div><div class="deal-stat-val">+239% <small>cycle re-rate</small></div></div>
+          <div><div class="deal-stat-label">HBM Status</div><div class="deal-stat-val">Sold Out <small>2026 booked</small></div></div>
+          <div><div class="deal-stat-label">Status</div><div class="deal-stat-val">In Portfolio <small>per memory</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Already a position in the personal book. Listed for completeness — MU runs on a different mechanic than the other names: cyclical commodity rather than strategic equity beneficiary. But at 9x forward and HBM sold through 2026, the AI cycle is delivering pricing power that hasn't been seen in DRAM in years. The risk is straightforward: when does the cycle roll? The position size should account for that — and the existing weight in the personal portfolio already provides exposure.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">HBM4 transition extends supply tightness; AI capex sustains DRAM pricing through 2027; gross margin north of 40%.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">DRAM cycle peaks in 2H 2026; Samsung HBM3E qualification accelerates supply; CapEx discipline breaks among Big 3.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="CRWV">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">CRWV</div><div class="ticker-name">CoreWeave, Inc.</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">NVDA</span>
+          <span class="investor-label" style="margin-left: 16px;">% of NVDA Portfolio</span>
+          <span style="font-size: 11px; color: var(--gold);">86%</span>
+        </div>
+        <p class="deal-headline">NVIDIA's <strong>top portfolio position</strong> — purpose-built AI cloud serving Anthropic, OpenAI, Microsoft.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">NVDA Allocation</div><div class="deal-stat-val">86% <small>of equity book</small></div></div>
+          <div><div class="deal-stat-label">Street Target</div><div class="deal-stat-val">+58% <small>median 12mo</small></div></div>
+          <div><div class="deal-stat-label">Customer Mix</div><div class="deal-stat-val">Hyperscale <small>OAI · ANTH · MSFT</small></div></div>
+          <div><div class="deal-stat-label">Benchmarks</div><div class="deal-stat-val">MLPerf <small>category leader</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Pure-play AI cloud with NVDA-purpose-built infrastructure. Top-tier MLPerf benchmark performance. NVDA's largest equity holding by far — a signal NVIDIA wants this specific operator winning the neocloud category. The downside is concentration risk to NVDA's roadmap, customer concentration in a few large AI labs, and a leverage profile that requires continued capital markets access.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">Anthropic and OpenAI keep growing; sovereign AI deployments win; Rubin platform launch drives capex through 2027.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">High leverage; customer concentration; if hyperscalers in-source more, neocloud margins compress.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="NBIS">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">NBIS</div><div class="ticker-name">Nebius Group N.V.</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">NVDA</span>
+          <span class="investor-label" style="margin-left: 16px;">Position Status</span>
+          <span style="font-size: 11px; color: var(--text-dim);">EXISTING HOLDING · YOUR PORTFOLIO</span>
+        </div>
+        <p class="deal-headline">Confirmed <strong>NVDA strategic partnership</strong> — plus $17.4B Microsoft and $3B Meta hyperscaler contracts.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">NVDA Tie</div><div class="deal-stat-val">Strategic <small>cloud partner</small></div></div>
+          <div><div class="deal-stat-label">MSFT Deal</div><div class="deal-stat-val">$17.4B <small>multi-year</small></div></div>
+          <div><div class="deal-stat-label">META Deal</div><div class="deal-stat-val">$3.0B <small>follow-on</small></div></div>
+          <div><div class="deal-stat-label">Status</div><div class="deal-stat-val">In Portfolio <small>per memory</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Already a position in the personal book. Listed for completeness — NBIS has the cleanest set of disclosed multi-year hyperscaler deals (MSFT + META directly, plus the NVDA strategic cloud partnership). Thesis stands: neocloud capacity scarcity, deep contract backlog, direct beneficiary of the Anthropic/OpenAI/Meta capex wave. Size discipline still applies given concentration to a small number of mega-customers.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">Contract backlog converts at expected margins; additional hyperscaler signs; geographic expansion succeeds.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Customer concentration; capex intensity strains FCF; hyperscaler in-sourcing pressures pricing.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <div class="ornament">◆ ◆ ◆ ◆ ◆</div>
+
+    <div class="section-header">
+      <span class="section-marker">iv.</span>
+      <h2 class="section-title">Tier III — <em>Speculative</em>, single-counterparty exposure</h2>
+      <span class="section-meta">SIZE WITH CARE</span>
+    </div>
+
+    <article class="investment-card" data-ticker="RIVN">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">RIVN</div><div class="ticker-name">Rivian Automotive</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span><span class="star-empty">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">AMZN</span>
+          <span class="investor-label" style="margin-left: 16px;">Stake</span>
+          <span style="font-size: 11px; color: var(--gold);">~20%</span>
+        </div>
+        <p class="deal-headline">Amazon's long-standing <strong>~20% stake</strong> + 100,000-van delivery contract — the original strategic-customer playbook.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">AMZN Stake</div><div class="deal-stat-val">~20% <small>since 2019</small></div></div>
+          <div><div class="deal-stat-label">Initial Check</div><div class="deal-stat-val">$700M <small>seed round</small></div></div>
+          <div><div class="deal-stat-label">Demand Floor</div><div class="deal-stat-val">100K Vans <small>EDV contract</small></div></div>
+          <div><div class="deal-stat-label">Sector</div><div class="deal-stat-val">EV <small>commercial fleet</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Speculative beaten-down value play. Amazon's 20% ownership and the EDV contract create a partial demand floor. The R2 platform launch in 2026 is the make-or-break catalyst for unit economics. This is not high-conviction — cash burn and EV market headwinds are real. If you want exposure to an AMZN-backstopped name at distressed multiples, this is it. Size accordingly.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">R2 delivers gross margin positive; AMZN expands EDV order; commercial fleet electrification accelerates.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Continued cash burn forces dilutive raises; EV demand softens; legacy automakers undercut on price.</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="investment-card" data-ticker="GSAT">
+      <div class="card-left">
+        <div class="ticker-block"><div class="ticker-symbol">GSAT</div><div class="ticker-name">Globalstar, Inc.</div></div>
+        <div class="price-block">
+          <div class="price-current" data-field="price">—</div>
+          <div class="price-change-row"><span data-field="change">—</span><span data-field="changepct">—</span></div>
+          <div class="price-meta">
+            <span class="price-meta-label">Day H</span><span class="price-meta-val" data-field="high">—</span>
+            <span class="price-meta-label">Day L</span><span class="price-meta-val" data-field="low">—</span>
+            <span class="price-meta-label">Open</span><span class="price-meta-val" data-field="open">—</span>
+            <span class="price-meta-label">P. Close</span><span class="price-meta-val" data-field="prev">—</span>
+          </div>
+        </div>
+        <div class="conviction-tag">Conviction <span class="conviction-stars"><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span><span class="star-empty">★</span><span class="star-empty">★</span></span></div>
+      </div>
+      <div class="card-right">
+        <div class="investor-row">
+          <span class="investor-label">Strategic Investor</span><span class="investor-badge">AAPL</span>
+          <span class="investor-label" style="margin-left: 16px;">Relationship</span>
+          <span style="font-size: 11px; color: var(--gold);">SATELLITE iPhone SOS</span>
+        </div>
+        <p class="deal-headline">Apple effectively <strong>funds Globalstar's satellite buildout</strong> — iPhone Emergency SOS underwrites the cap structure.</p>
+        <div class="deal-grid">
+          <div><div class="deal-stat-label">AAPL Tie</div><div class="deal-stat-val">Multi-Year <small>service contract</small></div></div>
+          <div><div class="deal-stat-label">Service</div><div class="deal-stat-val">iPhone SOS <small>+ messaging</small></div></div>
+          <div><div class="deal-stat-label">Cap. Structure</div><div class="deal-stat-val">AAPL Funded <small>satellite refresh</small></div></div>
+          <div><div class="deal-stat-label">Profile</div><div class="deal-stat-val">Small Cap <small>high beta</small></div></div>
+        </div>
+        <span class="thesis-label">Thesis</span>
+        <p class="thesis">Apple is famously stingy with strategic equity stakes — this is the rare public company where AAPL has materially underwritten the business model via service revenue and capital. iPhone Emergency SOS, satellite messaging, and direct-to-cell features create a durable revenue stream from a single counterparty. Risk is concentration in that one relationship: if Apple changes vendor strategy or builds in-house, the thesis evaporates. Small cap, high volatility — true speculative tail.</p>
+        <div class="risk-row">
+          <div class="risk-block"><div class="risk-label">Bull Case</div><div class="risk-text bull">Apple expands satellite features beyond emergency; direct-to-cell becomes a paid service; spectrum value re-rated.</div></div>
+          <div class="risk-block"><div class="risk-label">Bear Case</div><div class="risk-text bear">Apple migrates to SpaceX/T-Mobile direct-to-cell; capital requirements exceed cash flow; dilution.</div></div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="tab-panel" id="panel-news">
+    <div class="section-header">
+      <span class="section-marker">i.</span>
+      <h2 class="section-title">Live <em>Deal News</em> — partnerships, stakes &amp; acquisitions</h2>
+      <span class="section-meta">14-DAY ROLLING WINDOW · 20 TICKERS</span>
+    </div>
+    <div class="news-controls">
+      <span class="news-filter-label">Filter</span>
+      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="parents">Parent Cos</button>
+      <button class="filter-chip" data-filter="positions">Positions Only</button>
+      <button class="filter-chip" data-filter="signal">High-Signal</button>
+      <span class="news-meta" id="news-count">—</span>
+    </div>
+    <div class="news-feed" id="news-feed">
+      <div class="news-loading">Loading deal flow…</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <em>Not investment advice. Strategic equity stakes from corporate parents reflect commercial alignment, not pure investment return targets. All positions require independent due diligence; valuation, position sizing, tax placement, and concentration risk are determinations only the holder of capital can make. Live prices &amp; news courtesy Finnhub.io · Quotes 15-min delayed during extended hours.</em>
+    <div style="text-align: right;">
+      STRATEGIC CO-INVESTMENT TRACKER<br>
+      <span style="color: var(--gold);">v2.0 · BUILD <span id="build-id">—</span></span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  const FINNHUB_KEY = 'd7g12c1r01qqb8rhuptgd7g12c1r01qqb8rhupu0';
+  const PARENT_TICKERS = [
+    { sym: 'NVDA', name: 'NVIDIA' }, { sym: 'AMD', name: 'Adv Micro' },
+    { sym: 'AVGO', name: 'Broadcom' }, { sym: 'GOOGL', name: 'Alphabet' },
+    { sym: 'AMZN', name: 'Amazon' }, { sym: 'META', name: 'Meta' },
+    { sym: 'AAPL', name: 'Apple' }
+  ];
+  const COINVESTMENTS = ['COHR','NTNX','TLN','INTC','NOK','BE','CRDO','TSM','MU','CRWV','NBIS','RIVN','GSAT'];
+  const ALL_TICKERS = [...PARENT_TICKERS.map(p => p.sym), ...COINVESTMENTS];
+  const PARENT_SET = new Set(PARENT_TICKERS.map(p => p.sym));
+  const SIGNAL_KEYWORDS = ['partnership','partner','acquir','invest','stake','equity','deal','agreement','multi-year','multiyear','multibillion','strategic','collaboration','jv','joint venture','merger','buyout','supply commit','purchase commit','funding','round','gigawatt','ppa','warrant','preferred','private placement','memorandum','mou','lta','long-term agreement'];
+
+  const fmt = (n, d=2) => (n==null||isNaN(n))?'—':Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const fmtSign = (n, d=2) => (n==null||isNaN(n))?'—':(n>=0?'+':'')+fmt(n,d);
+  const cssClass = n => (n==null||isNaN(n))?'neu':(n>0?'pos':n<0?'neg':'neu');
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const escapeHtml = s => !s?'':s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  async function getQuote(symbol) {
+    try {
+      const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`);
+      if (!r.ok) throw new Error();
+      return await r.json();
+    } catch (e) { return null; }
+  }
+  async function getCompanyNews(symbol, fromISO, toISO) {
+    try {
+      const url = `https://finnhub.io/api/v1/company-news?symbol=${symbol}&from=${fromISO}&to=${toISO}&token=${FINNHUB_KEY}`;
+      const r = await fetch(url);
+      if (!r.ok) return [];
+      const data = await r.json();
+      if (!Array.isArray(data)) return [];
+      return data.map(item => ({ ...item, _ticker: symbol }));
+    } catch (e) { return []; }
+  }
+
+  async function renderParents() {
+    const grid = document.getElementById('parents-grid');
+    if (!grid.children.length) {
+      grid.innerHTML = PARENT_TICKERS.map(p => `<div class="parent-cell"><div class="parent-ticker">${p.sym}</div><div class="parent-name">${p.name}</div><div class="parent-price loading" data-sym="${p.sym}-price">—</div><div class="parent-change neu" data-sym="${p.sym}-change">—</div></div>`).join('');
+    }
+    for (const p of PARENT_TICKERS) {
+      const q = await getQuote(p.sym);
+      const priceEl = document.querySelector(`[data-sym="${p.sym}-price"]`);
+      const changeEl = document.querySelector(`[data-sym="${p.sym}-change"]`);
+      if (q && q.c) {
+        priceEl.classList.remove('loading');
+        priceEl.textContent = '$' + fmt(q.c);
+        changeEl.className = 'parent-change ' + cssClass(q.d);
+        changeEl.textContent = fmtSign(q.d) + '  ' + fmtSign(q.dp) + '%';
+      } else if (priceEl) { priceEl.classList.remove('loading'); priceEl.textContent = '—'; }
+    }
+  }
+
+  async function renderCards() {
+    for (const ticker of COINVESTMENTS) {
+      const card = document.querySelector(`.investment-card[data-ticker="${ticker}"]`);
+      if (!card) continue;
+      const q = await getQuote(ticker);
+      const fields = ['price','change','changepct','high','low','open','prev'];
+      const els = Object.fromEntries(fields.map(f => [f, card.querySelector(`[data-field="${f}"]`)]));
+      if (q && q.c) {
+        els.price.textContent = '$' + fmt(q.c);
+        els.change.className = cssClass(q.d); els.change.textContent = fmtSign(q.d);
+        els.changepct.className = cssClass(q.dp); els.changepct.textContent = fmtSign(q.dp) + '%';
+        els.high.textContent = '$' + fmt(q.h); els.low.textContent = '$' + fmt(q.l);
+        els.open.textContent = '$' + fmt(q.o); els.prev.textContent = '$' + fmt(q.pc);
+      } else { els.price.textContent = '—'; }
+    }
+  }
+
+  let newsItems = [], activeFilter = 'all', newsLoaded = false, newsLoading = false;
+
+  function isHighSignal(item) {
+    const text = ((item.headline||'') + ' ' + (item.summary||'')).toLowerCase();
+    return SIGNAL_KEYWORDS.some(kw => text.includes(kw));
+  }
+  function timeAgo(ts) {
+    const now = Math.floor(Date.now()/1000), diff = now - ts;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    if (diff < 604800) return Math.floor(diff/86400) + 'd ago';
+    return Math.floor(diff/604800) + 'w ago';
+  }
+  function fmtDate(ts) {
+    return new Date(ts*1000).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  }
+  function dedupeNews(items) {
+    const map = new Map();
+    for (const item of items) {
+      const key = item.url || (item.headline + '|' + item.source);
+      if (!map.has(key)) map.set(key, { ...item, _tickers: new Set([item._ticker]) });
+      else map.get(key)._tickers.add(item._ticker);
+    }
+    return Array.from(map.values()).map(item => ({ ...item, _tickers: Array.from(item._tickers) }));
+  }
+
+  async function loadNews() {
+    if (newsLoading || newsLoaded) return;
+    newsLoading = true;
+    const feed = document.getElementById('news-feed');
+    feed.innerHTML = '<div class="news-loading">Loading deal flow across 20 tickers…</div>';
+    const today = new Date();
+    const fortnight = new Date(today.getTime() - 14*86400*1000);
+    const fmtISO = d => d.toISOString().slice(0,10);
+    const fromISO = fmtISO(fortnight), toISO = fmtISO(today);
+
+    const allRaw = [];
+    for (const sym of ALL_TICKERS) {
+      const items = await getCompanyNews(sym, fromISO, toISO);
+      allRaw.push(...items);
+      await sleep(80);
+    }
+    newsItems = dedupeNews(allRaw)
+      .filter(n => n.headline && n.datetime)
+      .sort((a,b) => b.datetime - a.datetime)
+      .slice(0, 80);
+    newsLoaded = true; newsLoading = false;
+    renderNews();
+  }
+
+  function renderNews() {
+    const feed = document.getElementById('news-feed');
+    const countEl = document.getElementById('news-count');
+    let filtered = newsItems;
+    if (activeFilter === 'parents') filtered = filtered.filter(n => n._tickers.some(t => PARENT_SET.has(t)));
+    else if (activeFilter === 'positions') filtered = filtered.filter(n => n._tickers.every(t => !PARENT_SET.has(t)));
+    else if (activeFilter === 'signal') filtered = filtered.filter(isHighSignal);
+
+    countEl.textContent = filtered.length + ' ITEMS';
+    if (!filtered.length) { feed.innerHTML = '<div class="news-empty">No deal flow matches the current filter.</div>'; return; }
+
+    feed.innerHTML = filtered.map(item => {
+      const high = isHighSignal(item);
+      const summary = (item.summary || '').slice(0, 220);
+      const summaryDisplay = item.summary && item.summary.length > 220 ? summary + '…' : summary;
+      const tickerChips = item._tickers.map(t => `<span class="ticker-chip ${PARENT_SET.has(t)?'parent':''}">${t}</span>`).join('');
+      return `<div class="news-item ${high?'high-signal':''}"><div><div class="news-date">${fmtDate(item.datetime)}</div><span class="news-time-ago">${timeAgo(item.datetime)}</span></div><div class="news-body"><a href="${escapeHtml(item.url||'#')}" target="_blank" rel="noopener noreferrer" class="news-headline">${escapeHtml(item.headline)}</a>${summaryDisplay ? `<div class="news-summary">${escapeHtml(summaryDisplay)}</div>` : ''}<div class="news-meta-row"><span class="news-source">${escapeHtml(item.source||'')}</span><span class="news-tickers">${tickerChips}</span></div></div></div>`;
+    }).join('');
+  }
+
+  function setupTabs() {
+    const buttons = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.tab-panel');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        buttons.forEach(b => b.classList.toggle('active', b === btn));
+        panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+        if (tab === 'news' && !newsLoaded) loadNews();
+      });
+    });
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+        activeFilter = chip.dataset.filter;
+        if (newsLoaded) renderNews();
+      });
+    });
+  }
+
+  function renderHeader() {
+    const now = new Date();
+    document.getElementById('asof-date').textContent = now.toLocaleDateString('en-US', { month:'short', day:'2-digit', year:'numeric' }).toUpperCase();
+    document.getElementById('build-id').textContent = now.toISOString().slice(0,10).replace(/-/g,'.');
+    function tick() {
+      document.getElementById('refresh-clock').textContent = 'LAST · ' + new Date().toLocaleTimeString('en-US',{hour12:false}) + ' ET';
+    }
+    tick(); setInterval(tick, 1000);
+  }
+
+  async function init() {
+    renderHeader(); setupTabs();
+    await renderParents(); await renderCards();
+    setInterval(async () => { await renderParents(); await renderCards(); }, 60000);
+    setInterval(async () => {
+      if (newsLoaded && document.getElementById('panel-news').classList.contains('active')) {
+        newsLoaded = false; await loadNews();
+      }
+    }, 300000);
+  }
+  init();
+</script>
+</body>
+</html>
